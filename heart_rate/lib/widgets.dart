@@ -511,6 +511,21 @@ class _MyHomePageState extends State<MyHomePage> {
     _getCanVibrate();
   }
 
+  Border _getBorder(){
+
+    BorderSide side = new BorderSide(
+      width: 2.0,
+      color: Colors.grey,
+    );
+
+    return new Border(
+      right: side,
+      left: side,
+      top: side,
+      bottom: side,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -519,55 +534,76 @@ class _MyHomePageState extends State<MyHomePage> {
       _setStreams();
     }
 
-    return Flexible (
+    return Container (
+      margin: EdgeInsets.symmetric(vertical: 4, horizontal: 5),
+
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Text(
-                'Your current heartrate is:',
-                style: Theme.of(context).textTheme.display1,
-              ),
-              Text(
-                '$_heartRate',
-                style: Theme.of(context).textTheme.display2,
-
-              ),
-
-            ],
-          ),
-          Column(
-
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Text(
-                'Maximum Heart Rate:',
-                style: Theme.of(context).textTheme.headline,
-              ),
-              Text(
-                '$_maxHeartRate',
-                style: Theme.of(context).textTheme.title,
-              ),
-              Text(
-                'Enter a maximum heart rate:',
-                style: Theme.of(context).textTheme.headline,
-              ),
-              Container(
-                padding: EdgeInsets.fromLTRB(40, 12, 40, 12),
-                child: TextField(
-                  controller: maxHeartRateController,
-                  keyboardType: TextInputType.number,
-                  onEditingComplete: _setMaxHeartRate,
+          Container(
+            margin: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Text(
+                  'Your current heartrate is:',
+                  style: Theme.of(context).textTheme.display1,
                 ),
-              ),
-              RaisedButton(
-                child: Text('Set'),
-                onPressed: _setMaxHeartRate,
-              ),
-            ],
+                Text(
+                  '$_heartRate',
+                  style: Theme.of(context).textTheme.display2,
+
+                ),
+
+              ],
+            ),
           ),
+
+          Container(
+            decoration: new BoxDecoration(
+                border: _getBorder()
+            ),
+            margin: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: Column(
+
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Text(
+                  'Maximum Heart Rate:',
+                  style: Theme.of(context).textTheme.headline,
+                ),
+                Text(
+                  '$_maxHeartRate',
+                  style: Theme.of(context).textTheme.title,
+                ),
+                Text(
+                  'Enter a maximum heart rate:',
+                  style: Theme.of(context).textTheme.headline,
+                ),
+                Text(
+                  '(0 = no max)',
+                  style: Theme.of(context).textTheme.subhead,
+                ),
+
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  child: TextField(
+                    controller: maxHeartRateController,
+                    keyboardType: TextInputType.number,
+                    onEditingComplete: _setMaxHeartRate,
+                  ),
+                ),
+                RaisedButton(
+                  child: Text('Set'),
+                  onPressed: _setMaxHeartRate,
+                ),
+              ],
+            ),
+          ),
+
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
@@ -587,13 +623,18 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           RaisedButton(
             onPressed: (){
-              Navigator.push(context, MaterialPageRoute(builder: (context) => HeartRateHistory(rates: sessionHeartRates, times: sessionHeartRateTimes,)));
+              if(trackingStatus){
+                Navigator.push(context, MaterialPageRoute(builder: (context) => HeartRateHistory(rates: sessionHeartRates, times: sessionHeartRateTimes,)));
+              } else {
+                Scaffold.of(context).showSnackBar(new SnackBar(
+                    content: new Text('No history to show')
+                ));
+              }
             },
             child: Text('View History'),
           )
         ],
       ),
-      fit: FlexFit.loose,
     );
   }
 }
@@ -620,8 +661,6 @@ class _HeartRateHistoryState extends State<HeartRateHistory> {
       body: Container(
         padding: EdgeInsets.symmetric(vertical: 10, horizontal: 5),
         child: HeartRateGraph(
-          firstEvent: widget.times[0],
-          lastEvent: widget.times[widget.times.length - 1],
           seriesList: _getFormattedList(),
         ),
 
@@ -649,10 +688,8 @@ class _HeartRateHistoryState extends State<HeartRateHistory> {
 }
 
 class HeartRateGraph extends StatelessWidget {
-  HeartRateGraph({Key key, this.seriesList, this.firstEvent, this.lastEvent});
+  HeartRateGraph({Key key, this.seriesList});
 
-  final DateTime firstEvent;
-  final DateTime lastEvent;
   final List<charts.Series> seriesList;
 
 
